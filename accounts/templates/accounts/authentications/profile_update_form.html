@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+
+{% block title %}Signup{% endblock %}
+
+{% block content %}
+<main class="form-signin mt-5 text-center">
+  <form method="POST" action="" enctype="multipart/form-data">
+    {% csrf_token %}
+    <i style="font-size: 45px;" id="rotate" class="fas fa-fan"></i> <strong style="font-size: 25px;">| 19- Blog |</strong>
+    <h1 class="h3 mb-3 fw-normal mt-3">Update your Profile</h1>
+    <br>
+    <div class="row">
+      <div class="col-md-5 mx-auto">
+        {{ form.username }}
+      </div>
+      <div class="col-md-5 mx-auto">
+        {{ form.email }}
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-md-5 mx-auto">
+        {{ form.first_name }}
+      </div>
+      <div class="col-md-5 mx-auto">
+        {{ form.last_name }}
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-md-5 mx-auto">
+        {{ form.image }}
+      </div>
+      <div class="col-md-5 mx-auto">
+        {{ form.gender }}
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-md-5 mx-auto">
+        {{ form.bio }}
+      </div>
+      <div class="col-md-5 mx-auto">
+        {{ form.about_user }}
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-md-5 mx-auto">
+        {{ form.password }}
+      </div>
+      <div class="col-md-5 mx-auto">
+        {{ form.password2 }}
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-md-auto mx-auto">
+        {{ form.facebook_profile }}
+      </div>
+      <div class="col-md-auto mx-auto">
+        {{ form.instagram_profile }}
+      </div>
+      <div class="col-md-auto mx-auto">
+        {{ form.twitter_profile }}
+      </div>
+    </div>
+
+    <button class="w-25 btn btn-lg btn-primary" type="submit">Save changes</button>
+    <p class="mt-5 mb-3 text-muted">&copy; 2017–2021</p>
+  </form>
+</main>
+{% endblock %}
+
+{% block javascript %}
+  <script>
+    const gender_select = document.querySelector('select');
+    gender_select[0].textContent = 'select your gender';
+    gender_select[0].hidden = true;
+  </script>
+{% endblock %}

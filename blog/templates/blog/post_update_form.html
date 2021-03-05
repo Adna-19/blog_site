@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+{% block title %}Update post {% endblock %}
+
+{% block content %}
+  <h1>
+    Post update form
+  </h1>
+  <form action="" method="POST" enctype="multipart/form-data">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <p>
+      <input type="submit" value="save changes">
+    </p>
+  </form>
+{% endblock %}
+
+{% block javascript %}
+  <script>
+    var simpleMDEForComment = new SimpleMDE({
+        element: document.querySelector('#id_content'),
+        showIcons: ['code', 'table'],
+    });
+  </script>
+{% endblock %}

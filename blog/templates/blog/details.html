@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+{% load custom_tags_filters %}
+
+{% block title %} Home {% endblock %}
+
+{% block content %}
+  {% include "blog/navbar.html" %}
+  <div id="content" class="float-start mt-4" style="width: 47rem;">
+    <img src="{{ post.image.url }}" class="img-thumbnail" width="100%">
+		<br><br>
+    <a href="{% url 'blog:update_post' post.id %}">Update post</a><br>
+		{% include "blog/modal.html" with post=post %}
+		<a href="">{{ post.category }}</a><br>
+		<h2>{{ post.title }}</h2>
+		<p>
+			by <span><i>{{ post.author }}</i></span>&emsp14;&emsp14;
+			<span>{{ post.date_published}}</span>
+		</p>
+		{% if request.user.is_authenticated %}
+			<a href="{% url 'blog:like_dislike' post.slug %}" class="btn btn-sm {% if post|already_liked:request.user %} btn-danger {% else %} btn-outline-danger {% endif %}">
+				{% if post|already_liked:request.user %}
+					Dislike | <i class="fas fa-heart-broken"></i>
+				{% else %}
+					Like | <i class="fas fa-heart"></i>
+				{% endif %}
+			</a>
+		{% endif %}	
+		<span class="p-2">{{ total_likes }} Like{{ total_likes|pluralize }}</span>
+		<br>
+		<h4 class="mt-3">Summary:</h4>
+		<p class="lead" style="font-size: 16px;">{{ post.summary }}</p>
+		<hr>
+		<p>{{ post.content|markdown }}</p>
+
+		<div id="comment-section" class="mt-5">
+
+			<h3>{{ post.comments.count }} Comments</h3>
+			<hr>
+			<div class="comment-form">
+				<form method="POST" action="" novalidate>
+					{% csrf_token %}
+					<div>
+						<div class="row">
+							<div class="col-md-1">
+								<img class="rounded-circle" src="{{ request.user.image.url }}" width="110%">
+							</div>
+							<div class="col-md-10">
+								{{ form.content }}
+							</div>
+						</div>
+        			</div>
+					<input type="submit" class="btn btn-sm btn-primary mt-3" value="add comment">
+				</form>	
+			</div>	
+			<hr>
+			<div id="comments">
+				{% for comment in post.comments.all %}
+					<div class="d-flex flex-column comment-section p-4" style="background-color: #F0F0F0;">
+						<div class="bg-white p-2">
+						<div class="d-flex flex-row user-info p-3">
+							<img class="rounded-circle" src="{{ comment.author.image.url }}" width="70">
+							<div class="d-flex flex-column justify-content-start p-3">
+								<span class="d-block font-weight-bold name">{{ comment.author }}</span>
+								<span class="date text-black-50">Shared publicly - {{ comment.date_created }}</span>
+							</div>
+						</div>
+						<div class="mt-2" style="width: 31rem; margin-left: 3.5%;">
+							{{ comment.content|markdown }}
+						</div>
+						{% if comment.author == request.user %}
+							<a href="#" class="btn btn-sm btn-danger float-end" style="margin-left: 30px;">
+								<i class="fas fa-trash"></i>
+							</a>
+						{% endif %}
+						</div>
+					</div>	
+				{% empty %}
+					<p style="margin-top:30px; text-align: center; font-size: 28px; color: rgb(179, 174, 174);">
+						<i class="far fa-comments"></i> There are no comments on the post.
+					</p>
+				{% endfor %}
+			</div>
+		</div>
+  </div>
+
+  <div id="sidebar" class="float-end">
+
+  </div>
+{% endblock %}
+
+{% block javascript %}
+  <script>
+    var simpleMDEForComment = new SimpleMDE({
+        element: document.querySelector('#id_content'),
+        showIcons: ['code', 'table'],
+    });
+  </script>
+{% endblock %}

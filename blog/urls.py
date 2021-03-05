@@ -1,0 +1,14 @@
+from django.urls import path
+from . import views
+
+app_name = 'blog'
+
+urlpatterns = [
+  path('', views.BlogListView.as_view(), name='home'),
+  path('<slug:category_slug>/posts/', views.BlogListView.as_view(), name='list_by_category'),
+  path('post/<slug:slug>/', views.BlogDetailView.as_view(), name='post_detail'),
+  path('post/<slug:slug>/like/', views.BlogPostLikeDisLikeView.as_view(), name='like_dislike'),
+  path('create/', views.BlogPostCreateView.as_view(), name='create_post'),
+  path('<int:pk>/edit/', views.BlogPostUpdateView.as_view(), name='update_post'),
+  path('<slug:slug>/delete/', views.BlogPostDeleteView.as_view(), name='delete_post'),
+]

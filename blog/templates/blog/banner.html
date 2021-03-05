@@ -1,0 +1,31 @@
+<div class="p-4 p-md-5 mb-4 text-white rounded bg-dark slider">
+  {% for post in trending_posts %}
+    <div class="col-md-6 px-0 post" style="display: none;">
+      <h1 class="display-4 fst-italic">{{ post.title }}</h1>
+      <p class="lead my-3">{{ post.summary|truncatewords:20 }}</p>
+      <p class="lead mb-0"><a href="{{ post.get_absolute_url }}" class="text-white fw-bold">Continue reading...</a></p>
+    </div>
+  {% endfor %}
+</div>
+
+<script>
+  const postsList = document.querySelectorAll('.post');
+
+  var currentPostIndex = 0;
+  var previousPostIndex = postsList.length - 1;
+
+  function loopOverPosts() {
+    postsList[currentPostIndex].style.animation = 'fadeIn ease 10s';
+    postsList[currentPostIndex].style.display = 'block';
+
+    postsList[previousPostIndex].style.display = 'none';
+
+    // swap indexes
+    previousPostIndex = currentPostIndex;
+    currentPostIndex++;
+
+    if (currentPostIndex === postsList.length) { currentPostIndex = 0; }
+    setTimeout(loopOverPosts, 10000);
+  }
+  loopOverPosts();
+</script>
