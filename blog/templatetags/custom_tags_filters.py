@@ -25,8 +25,8 @@ def is_not_saved(post, user):
     return True
 
 @register.filter()
-def already_liked(post, person):
-    persons_already_liked_post = [like.liked_by for like in post.likes.all()]
+def already_liked(object_, person):
+    persons_already_liked_post = [like.liked_by for like in object_.likes.all()]
     if person in persons_already_liked_post:
         return True
     return False
