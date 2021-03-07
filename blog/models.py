@@ -97,6 +97,9 @@ class Comment(models.Model):
 	date_updated = models.DateField(auto_now=True)
 	likes = GenericRelation(Like)
 
+	def get_delete_url(self):
+		return f"/blog/comment/{self.id}/delete/"
+
 	class Meta:
 		ordering = ['-date_created']
 
