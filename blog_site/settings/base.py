@@ -14,7 +14,7 @@ from pathlib import Path
 from decouple import config
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
-BASE_DIR = Path(__file__).resolve().parent.parent
+BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
 
 # Quick-start development settings - unsuitable for production
@@ -65,7 +65,9 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
                 'blog.context_processors.get_all_categories',
-                'blog.context_processors.get_top_trending_posts'
+                'blog.context_processors.get_top_trending_posts',
+                'blog.context_processors.get_most_commented_posts',
+                'blog.context_processors.get_all_tags'
             ],
         },
     },
@@ -126,6 +128,6 @@ STATIC_URL = '/static/'
 MEDIA_URL  = '/images/'
 
 STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, 'static'),
+    os.path.join(BASE_DIR, 'static/'),
 ]
 MEDIA_ROOT = os.path.join(BASE_DIR, 'static/images/')
