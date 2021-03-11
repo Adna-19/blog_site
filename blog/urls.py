@@ -1,4 +1,6 @@
 from django.urls import path
+from django.contrib.sitemaps.views import sitemap
+from .sitemaps import PostSitemap
 from . import views
 
 app_name = 'blog'
@@ -15,3 +17,8 @@ urlpatterns = [
   path('comment/<int:comment_id>/delete/', views.BlogPostCommentDeleteView.as_view(), name='delete_comment'),
   path('comment/<int:comment_id>/like/', views.PostCommentLikeDislikeView.as_view(), name='like_comment')
 ]
+
+sitemaps = {
+  'posts': PostSitemap
+}
+urlpatterns += [path('sitemaps.xml/', sitemap, {'sitemaps': sitemaps}, name='sitemap'),]
