@@ -1,5 +1,5 @@
 from django.shortcuts import render, get_object_or_404
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, JsonResponse
 from django.views.generic.list import ListView
 from django.views.generic.base import TemplateResponseMixin, View
 from django.views.generic.detail import DetailView
@@ -69,9 +69,11 @@ class BlogPostLikeDisLikeView(View):
       # dislike the post, if already liked.
       user_like = post.likes.get(liked_by=request.user)
       user_like.delete()
+      action = 'disliked'
     else:
       post.likes.create(liked_by=request.user)
-    return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
+      action = 'liked'
+    return JsonResponse({'action': action})
 
 class PostCommentLikeDislikeView(View):
   def get(self, request, comment_id, *args, **kwargs):
@@ -82,9 +84,11 @@ class PostCommentLikeDislikeView(View):
       # dislike the comment, if already_liked
       user_like = comment.likes.get(liked_by=request.user)
       user_like.delete()
+      action = 'disliked'
     else:
       comment.likes.create(liked_by=request.user)
-    return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
+      action = 'liked'
+    return JsonResponse({'action': action})
 
 class BlogPostCommentDeleteView(LoginRequiredMixin, View):
   def get(self, request, comment_id, *args, **kwargs):
