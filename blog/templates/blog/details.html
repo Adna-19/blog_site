@@ -17,15 +17,15 @@
 			<span>{{ post.date_published}}</span>
 		</p>
 		{% if request.user.is_authenticated %}
-			<a href="{% url 'blog:like_post' post.slug %}" class="btn btn-sm {% if post|already_liked:request.user %} btn-danger {% else %} btn-outline-danger {% endif %}">
+			<button id="like-dislike-btn" class="btn btn-danger" data-post_slug="{{ post.slug }}">
 				{% if post|already_liked:request.user %}
 					Dislike | <i class="fas fa-heart-broken"></i>
 				{% else %}
 					Like | <i class="fas fa-heart"></i>
 				{% endif %}
-			</a>
+			</button>
 		{% endif %}	
-		<span class="p-2">{{ total_likes }} Like{{ total_likes|pluralize }}</span>
+		<span class="p-2"><span id="total-likes">{{ total_likes }}</span> Like{{ total_likes|pluralize }}</span>
 		<br>
 		<h4 class="mt-3">Summary:</h4>
 		<p class="lead" style="font-size: 16px;">{{ post.summary }}</p>
@@ -69,13 +69,19 @@
 						</div>
 
 						{% if request.user.is_authenticated %}
-							<a href="{% url 'blog:like_comment' comment.id %}" class="btn btn-sm {% if comment|already_liked:request.user %} btn-danger {% else %} btn-outline-danger {% endif %}">
+							<button class="btn btn-sm {% if comment|already_liked:request.user %} btn-danger {% else %} btn-outline-danger {% endif %}" id="comment-like-dislike-btn" data-comment_id={{comment.id}}> 
 								{% if comment|already_liked:request.user %}
-									{{ comment.likes.count }} | <i class="fas fa-heart-broken"></i>
+									<span id="comment-{{comment.id}}-likes">
+										{{ comment.likes.count }} 
+										<i class="fas fa-heart-broken"></i>
+									</span>
 								{% else %}
-									{{ comment.likes.count }} | <i class="fas fa-heart"></i>
+								 	<span id="comment-{{comment.id}}-likes">
+								 		{{ comment.likes.count }}
+										<i class="fas fa-heart"></i>
+									</span>
 								{% endif %}
-							</a>
+							</button>
 						{% endif %}
 
 						{% if comment.author == request.user %}
@@ -121,5 +127,69 @@
         element: document.querySelector('#id_content'),
         showIcons: ['code', 'table'],
     });
+
+		document.querySelector('#like-dislike-btn').addEventListener('click', likeOrDislikePost);
+		function likeOrDislikePost() {
+			const post_slug = this.dataset.post_slug;
+			$.ajax({
+				url: `/blog/post/${post_slug}/like/`,
+				success: function (response) {
+					const action = response['action'];
+
+					if(action == 'liked') {
+						// 1 - increment likes
+						let likes = parseInt(document.querySelector('span #total-likes').textContent);
+						likes++;
+						document.querySelector('span #total-likes').textContent = likes;
+						
+						// 2 - change button icon to dislike
+						document.querySelector('#like-dislike-btn').innerHTML = 'Dislike | <i class="fas fa-heart-broken"></i>';
+
+					} else if(action == 'disliked') {
+						// 1 - decrement likes
+						let likes = parseInt(document.querySelector('span #total-likes').textContent);
+						likes--;
+						document.querySelector('span #total-likes').textContent = likes;
+						
+						// 2 - change button icon to like
+						document.querySelector('#like-dislike-btn').innerHTML = 'Like | <i class="fas fa-heart"></i>';
+					}
+				},
+				error: function (response) {	
+					console.log('something went wrong');
+				}
+			});
+		}
+
+		document.querySelectorAll('#comment-like-dislike-btn').forEach((button) => button.addEventListener('click', likeOrDislikeComment));
+		function likeOrDislikeComment(e) {
+			const comment_id = this.dataset.comment_id;
+
+			$.ajax({
+				url: `/blog/comment/${comment_id}/like/`,
+				success: function(response) {
+					const action = response['action'];
+					let likes = parseInt(document.querySelector(`span#comment-${comment_id}-likes`).textContent);
+					
+					if (action == 'liked') {
+						likes++;
+						document.querySelector(`#comment-${comment_id}-likes`).innerHTML = `
+							${likes} 
+							<i class="fas fa-heart-broken"></i>
+						`;
+
+					} else if (action == 'disliked') {
+						likes--;
+						document.querySelector(`#comment-${comment_id}-likes`).innerHTML = `
+							${likes} 
+							<i class="fas fa-heart"></i>
+						`;
+					}
+				},
+				error: function(response) {
+					console.log('something went wrong');
+				}
+			});
+		}
   </script>
 {% endblock %}
