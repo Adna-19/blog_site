@@ -1,13 +1,16 @@
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import render, get_object_or_404, redirect
 from django.http import HttpResponseRedirect, JsonResponse
 from django.views.generic.list import ListView
 from django.views.generic.base import TemplateResponseMixin, View
 from django.views.generic.detail import DetailView
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic.edit import CreateView, UpdateView, DeleteView
+from django.apps import apps
 from django.urls import reverse_lazy
+from django.forms.models import modelform_factory
 from taggit.models import Tag
-from .models import Post, Category, Comment
+from braces.views import CsrfExemptMixin, JsonRequestResponseMixin
+from .models import Post, Category, Comment, Content
 from accounts.models import UserProfile
 from .forms import CommentForm
 
@@ -61,6 +64,12 @@ class BlogDetailView(TemplateResponseMixin, View):
       return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
     return self.render_to_response({'post': post, 'form': form})
 
+class BlogPostContentsDetailView(DetailView):
+  # detail view for content creator
+  model = Post
+  template_name = 'cms/post_detail.html'
+  context_object_name = 'post'
+
 class BlogPostLikeDisLikeView(View):
   def get(self, request, slug, *args, **kwargs):
     post = get_object_or_404(Post, slug=slug)
@@ -99,9 +108,10 @@ class BlogPostCommentDeleteView(LoginRequiredMixin, View):
 class BlogPostCreateView(LoginRequiredMixin, CreateView):
   model = Post
   template_name = 'blog/post_creation_form.html'
+  post_id = None
   fields = [
     'title', 'category', 'image',
-    'summary', 'status', 'content',
+    'summary', 'status',
     'date_published',
   ]
 
@@ -109,7 +119,84 @@ class BlogPostCreateView(LoginRequiredMixin, CreateView):
     post = form.save(commit=False)
     post.author = self.request.user
     post.save()
+    # holding new post's id for redirecting to content_list page of that post
+    self.post_id = post.id
     return super().form_valid(form)
+
+  def get_success_url(self):
+    post_slug = get_object_or_404(Post, id=self.post_id).slug
+    return reverse_lazy('blog:post_content_list', kwargs={'slug': post_slug})
+
+class PostContentCreateUpdateView(TemplateResponseMixin, View):
+  template_name = 'cms/content_form.html'
+  model         = None
+  blog_post     = None
+  obj           = None
+
+  def get_content_model(self, model_name):
+    if model_name in ('text', 'image'):
+      return apps.get_model(app_label='blog', model_name=model_name)
+    return None
+
+  def get_form(self, model, *args, **kwargs):
+    Form = modelform_factory(model, exclude=['owner', 'order', 'date_created', 'date_updated'])
+    return Form(*args, **kwargs)
+
+  def dispatch(self, request, slug, model_name, id=None, *args, **kwargs):
+    self.blog_post  = get_object_or_404(Post, slug=slug, author=request.user)
+    self.model = self.get_content_model(model_name)
+
+    if id:
+      self.obj = get_object_or_404(self.model, id=id, owner=request.user)
+    return super(PostContentCreateUpdateView, self).dispatch(request, slug, model_name, id, *args, **kwargs)
+
+  def get(self, request, slug, model_name, id=None, *args, **kwargs):
+    form = self.get_form(self.model, instance=self.obj)
+    return self.render_to_response({'form': form, 'object': self.obj})
+
+  def post(self, request, slug, model_name, id=None, *args, **kwargs):
+    form = self.get_form(self.model, instance=self.obj, data=request.POST, files=request.FILES)
+
+    if form.is_valid():
+      content = form.save(commit=False)
+      content.owner = request.user
+      content.save()
+
+      if not id:
+        # create new content object
+        Content.objects.create(post=self.blog_post, content_object=content)
+      return redirect('blog:post_content_list', self.blog_post.slug)
+    return self.render_to_response({'form': form, 'object': self.obj})
+
+class PostContentOrderView(CsrfExemptMixin, JsonRequestResponseMixin, View):
+  def post(self, request, *args, **kwargs):
+    for object_id, order in self.request_json.items():
+      Content.objects.filter(
+        id=int(object_id),
+        post__author=request.user
+      ).update(order=order)
+    return self.render_json_response({'message': 'Reordered successfully'})
+
+class PostContentDeleteView(LoginRequiredMixin, View):
+
+  def get_content_model(self, model_name):
+    if model_name in ('text', 'image'):
+      return apps.get_model(app_label='blog', model_name=model_name)
+    return None
+
+  def get(self, request, slug, model_name, id, *args, **kwargs):
+    if request.is_ajax:
+      post = get_object_or_404(Post, slug=slug, author=request.user)
+      model = self.get_content_model(model_name)
+
+      content = post.contents.get(id=id, content_type__model=model_name)
+      content_item = get_object_or_404(model, id=content.content_object.id, owner=request.user)
+
+      # delete both the content_type and content_object
+      content.delete(); content_item.delete()
+      return JsonResponse({'message': 'Content deleted successfully'})
+    return JsonResponse({'message': 'Something went wrong'})
+
 
 class BlogPostUpdateView(LoginRequiredMixin, UpdateView):
   model = Post
