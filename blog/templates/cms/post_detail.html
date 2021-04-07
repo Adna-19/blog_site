@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+
+{% block title %}CMS View{% endblock %}
+
+{% block content %}
+	<style>
+    .message {
+      display: none;
+    }
+  </style>
+
+	<p class="message bg-success text-white p-4 mt-5"></p>
+
+	<div style="width: 90%; padding: 20px;">
+		<h1>{{ post.title }}</h1>
+		<img src="{{ post.image.url }}" class="img-thumbnail">
+		<p>{{ post.summary }}</p>
+
+		<h2>Add new content</h2>
+		<a class="btn btn-sm btn-primary" href="{% url 'blog:create_content' post.slug 'text' %}">Text</a>
+		<a class="btn btn-sm btn-primary" href="{% url 'blog:create_content' post.slug 'image' %}">Image</a>
+
+		<h2 class="mt-4">Content list:</h2>
+		<ul class="list-group contents">
+			{% for content in post.contents.all %}
+				<li class="list-group-item" data-id="{{ content.id }}" id="content-{{ content.id }}">
+					<a href="{% url 'blog:update_content' post.slug content.content_type.model content.content_object.id  %}"> {{ content.content_object.title }}</a> 
+					<span>
+						<button id="content-delete-btn" data-post_slug="{{ post.slug }}" data-model_name="{{ content.content_type.model }}" data-content_id="{{ content.id }}" class="btn btn-sm btn-danger">
+							Delete
+						</button>
+					</span>
+					<br>
+					<span class="order" style="display: none;">{{ content.order|add:1 }}</span> by <small>{{ content.content_object.owner}} on {{ content.content_object.date_created }}</small>
+				</li>
+			{% endfor %}
+		</ul>
+	</div>
+
+	<div style="height: 200px;">
+		
+	</div>
+
+{% endblock %}
+
+{% block javascript %}
+	<script type="text/javascript">
+		$(document).ready(function() {
+			$('.contents').sortable({
+				stop: function (event, ui) {
+					contents_order = {};
+					$('.contents').children().each(function () {
+						// update the order
+						$(this).find('.order').text($(this).index() + 1);
+						// associate the content with its order
+						contents_order[$(this).data('id')] = $(this).index();
+					});
+					$.ajax({
+						type: 'POST',
+						url: '{% url "blog:order_content" %}',
+						contentType: 'application/json; charset-utf-8',
+						dataType: 'json',
+						data: JSON.stringify(contents_order)
+					});
+				}
+			});
+		});
+
+		document.querySelectorAll('#content-delete-btn').forEach((button) => button.addEventListener('click', deleteContent));
+    
+    function deleteContent(e){
+      const content_id  = this.dataset.content_id;
+      const model_name  = this.dataset.model_name;
+      const post_slug = this.dataset.post_slug;
+
+      $.ajax({
+        url: `/blog/post/${post_slug}/content/${model_name}/${content_id}/delete/`, 
+        success: function (response){
+          document.querySelector(`#content-${content_id}`).remove();
+          const message_box = document.querySelector('.message');
+          message_box.textContent = response['message'];
+          message_box.style.display = "block";
+
+          // remove message after 4 seconds
+          setTimeout(function () {
+            message_box.remove();
+          }, 4000)
+        },
+        error: function(response){
+          alert(response['message']);
+        }
+      });
+    }
+	</script>
+{% endblock %}
