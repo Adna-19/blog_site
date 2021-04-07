@@ -30,7 +30,17 @@
 		<h4 class="mt-3">Summary:</h4>
 		<p class="lead" style="font-size: 16px;">{{ post.summary }}</p>
 		<hr>
-		<p>{{ post.content|markdown }}</p>
+		
+		<p>
+			{% for content in post.contents.all %}
+				<h2 class="p-2" id="content-{{content.order|add:1}}"># {{ content.content_object.title }}</h2>
+				{% if content.content_object.text %}
+					{{ content.content_object.text|markdown|safe }}
+				{% else %}
+					<img class="img-thumbnail" src="{{ content.content_object.image.url }}">
+				{% endif %}
+			{% endfor %}	
+		</p>
 
 		<div id="comment-section" class="mt-5">
 
@@ -118,6 +128,18 @@
 				{% endfor %}
 			</div>
 		</ul>
+
+		<ul class="list-group p-3" style="width: 18rem;">
+			<li class="list-group-item"><strong style="font-size: 26px; border-bottom: 2px solid black;">Table of Contents</strong></li>
+			<div class="p-3 border">
+				{% for content in post.contents.all %}
+					<li class="list-group-item">
+						<a href="#content-{{ content.order|add:1 }}">{{ content.content_object.title }}</a>
+					</li>
+				{% endfor%}
+			</div>
+		</ul>
+
   </div>
 {% endblock %}
 
