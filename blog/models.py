@@ -5,6 +5,7 @@ from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelatio
 from django.contrib.contenttypes.models import ContentType
 from django.utils.text import slugify
 from datetime import datetime
+from .fields import OrderField
 
 class Category(models.Model):
 	title = models.CharField(max_length=100)
@@ -64,7 +65,7 @@ class Post(models.Model):
 	date_created = models.DateField(auto_now_add=True)
 	date_updated = models.DateField(auto_now=True)
 	date_published = models.DateField()
-	content = models.TextField()
+	# content = models.TextField()
 	likes = GenericRelation(Like)
 
 	tags = TaggableManager()
@@ -80,6 +81,37 @@ class Post(models.Model):
 
 	def __str__(self):
 		return self.title
+
+class Content(models.Model):
+	post = models.ForeignKey(Post, related_name='contents', on_delete=models.CASCADE)
+	order = OrderField(blank=True, for_fields=['post'])
+
+	content_type = models.ForeignKey(ContentType, 
+																	on_delete=models.CASCADE, 
+																	limit_choices_to={'model__in':('text', 'image')})
+	object_id = models.PositiveIntegerField()
+	content_object = GenericForeignKey()
+
+	class Meta:
+		ordering = ['order']
+
+class BaseContent(models.Model):
+	title = models.CharField(max_length=200)
+	owner = models.ForeignKey('accounts.UserProfile', related_name='%(class)s_related', on_delete=models.CASCADE)
+	date_created = models.DateTimeField(auto_now_add=True)
+	date_updated = models.DateTimeField(auto_now=True)
+
+	class Meta:
+		abstract = True
+
+	def __str__(self):
+		return self.title
+
+class Text(BaseContent):
+	text = models.TextField()
+
+class Image(BaseContent):
+	image = models.ImageField()
 
 class SavedPost(models.Model):
 	creator = models.OneToOneField(UserProfile, null=True, blank=True, on_delete=models.CASCADE, related_name='collection')
