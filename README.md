@@ -23,6 +23,10 @@ The Database model of the app consists of:
 - Post Category
 - Post Managers
 - Comments
+- Content (for diverse content)
+- BaseContent (Abstract model)
+- Text
+- Image
 - Likes
 - Author of Post
 - Saved Post
@@ -37,5 +41,3 @@ The project also contains sitemaps for the blog-app.
 ## Future Work
  - Newsletter  
  - Feeds
- - Diverse Content for Post
- - Fully functional CMS
