@@ -3,7 +3,7 @@ from decouple import config, Csv
 
 DEBUG = config('DEBUG', default=True, cast=bool)
 
-ALLOWED_HOSTS = config('ALLOWED_HOSTS', cast=Csv())
+# ALLOWED_HOSTS = config('ALLOWED_HOSTS', cast=Csv())
 
 # DATABASES = {
 #   'default': {
@@ -24,8 +24,13 @@ ALLOWED_HOSTS = config('ALLOWED_HOSTS', cast=Csv())
 # }
 
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.mailgun.org'
+EMAIL_HOST = 'smtp.gmail.org'
 EMAIL_PORT = config('EMAIL_PORT', cast=int)
 EMAIL_HOST_USER = config('EMAIL_HOST_USER')
 EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD')
 EMAIL_USE_TLS = True
+
+# mailchimp API configurations
+MAILCHIMP_API_KEY = config('MAILCHIMP_API_KEY')
+MAILCHIMP_DATA_CENTER = config('MAILCHIMP_DATA_CENTER')
+MAILCHIMP_EMAIL_LIST_ID = config('MAILCHIMP_EMAIL_LIST_ID')

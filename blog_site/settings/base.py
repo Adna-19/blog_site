@@ -26,8 +26,7 @@ SECRET_KEY = config('SECRET_KEY')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
-
+ALLOWED_HOSTS = ['127.0.0.1', 'localhost']
 
 # Application definition
 
@@ -41,6 +40,8 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'django.contrib.sites',
     'django.contrib.sitemaps',
+    'blog.apps.BlogConfig',
+    'taggit',
 ]
 
 SITE_ID = 1
@@ -71,7 +72,8 @@ TEMPLATES = [
                 'blog.context_processors.get_all_categories',
                 'blog.context_processors.get_top_trending_posts',
                 'blog.context_processors.get_most_commented_posts',
-                'blog.context_processors.get_all_tags'
+                'blog.context_processors.get_all_tags',
+                'blog.context_processors.email_subscription_form'
             ],
         },
     },

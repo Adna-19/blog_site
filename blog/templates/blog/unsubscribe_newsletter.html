@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+{% block title %}UnSubscribe{% endblock %}
+
+{% block content %}
+    <br><br>
+    <div class="card mx-auto w-75">
+        <div class="card-body p-3">
+            <h2 class="text-center">UNSUBSCRIBE FROM NEWSLETTER</h2><br>
+            <div class="mx-auto" style="width: 50%;">
+                <p class="text-center" style="font-size: 55px;"><i class="far fa-grin-beam"></i></p>
+                <p class="text-center" style="font-size: 19px;">
+                    We try our best to serve benefitial content to our Subscribers. If there is an issue, you can tell us by clicking <a href="#">here</a>.
+                </p>
+            </div>
+            
+            <hr><br>
+            <form class="mx-auto" action="." method="POST" id="newsletter-unsubscription-form">
+                {% csrf_token %}
+                {{ form.email }} <br>
+                <button class="btn btn-danger" type="submit">UN-SUBSCRIBE</button>
+            </form>
+        </div>
+    </div>
+{% endblock %}

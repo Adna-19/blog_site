@@ -1,0 +1,20 @@
+<div class="newsletter-message"></div>
+
+<div class="card newsletter-card">
+  <div class="card-header">
+    Newsletter Subscription
+  </div>
+  <div class="card-body">
+    <h5 class="card-title">SUBSCRIBE TO OUR NEWSLETTER</h5>
+    <p class="card-text">
+      If already subscribed and wanna unsubscribe 
+      <a href="{% url 'unsubscribe' %}">click here</a>
+    </p>
+
+    <form style="display: flex;" method="POST" action="{% url 'subscribe' %}" id="newsletter-form">
+      {% csrf_token %}
+      {{ newsletter_form.email }}
+      <button type="submit" class="btn btn-sm btn-primary">Subscribe</button>
+    </form>
+  </div>
+</div>
