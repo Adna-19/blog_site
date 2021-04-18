@@ -62,6 +62,10 @@
             </div>
           {% endfor %}
         </div>
+         <br>
+        <div class="newsletter-message"></div>
+
+        {% include "blog/newsletter_form.html" %}
 
       </div>
 
@@ -111,4 +115,52 @@
       </div>
     </div>
   </main>
+{% endblock %}
+
+{% block javascript %}
+
+  <!-- REDUNDANT SCRIPT USED TWICE IN HOME.HTML AND DETAIL.HTML -->
+  <!-- I WILL PLACE THAT SCRIPT IN A SINGLE FILE AND LINK THAT FILE
+  WITH BOTH HTML FILES -->
+  <script>
+    $("#newsletter-form").submit(function(e) {
+      e.preventDefault();
+      const serializedData = $(this).serialize();
+      $.ajax({
+        type: "POST",
+        url: "{% url 'subscribe' %}",
+        data: serializedData,
+        success: function(response) {
+          $("#newsletter-form").trigger('reset');
+          showAlert(response.header, response.message, response.type);
+        },  
+        error: function(response) {
+          showAlert(response['responseJSON']['error'], 'danger');
+        }
+      });
+    });
+
+    function showAlert(header, message, type) {
+      // hide newsletter form for showing alert message instead
+      document.querySelector('.newsletter-card').style.display = 'none';
+
+      const div = document.createElement('div');
+      div.className = `alert alert-${type} alert-dismissible fade show`;
+      div.setAttribute('role', 'alert');
+      div.innerHTML = `
+      <h4 class="alert-heading">${header}</h4>
+      <p>Aww yeah, ${message}. Now you can get daily updates from our newsletter. We'll try to deliver our best content to you.</p>
+      <hr>
+      <p class="mb-0">Whenever you need to, be sure to use margin utilities to keep things nice and tidy.</p>
+      `;
+      const container = document.querySelector('.newsletter-message');
+      container.appendChild(div);
+
+      // after 5 second remove alert and again show form
+      setTimeout(() => {
+        document.querySelector('.alert').remove();
+        document.querySelector('.newsletter-card').style.display = 'block';
+      }, 5000)
+    }
+  </script>
 {% endblock %}
