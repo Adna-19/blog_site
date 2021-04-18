@@ -9,10 +9,19 @@ from django.apps import apps
 from django.urls import reverse_lazy
 from django.forms.models import modelform_factory
 from taggit.models import Tag
-from braces.views import CsrfExemptMixin, JsonRequestResponseMixin
-from .models import Post, Category, Comment, Content
+from braces.views import (
+  CsrfExemptMixin, 
+  JsonRequestResponseMixin, 
+  JSONResponseMixin
+)
+from .models import Post, Category, Comment, Content, NewsletterSubscription
 from accounts.models import UserProfile
-from .forms import CommentForm
+from .newsletter_operations import subscribe, unsubscribe
+from .forms import (
+  CommentForm, 
+  EmailSubscriptionForm, 
+  EmailUnsubscriptionForm
+)
 
 class BlogListView(ListView):
   model = Post
@@ -40,6 +49,7 @@ class BlogListView(ListView):
   def get_context_data(self, **kwargs):
     context = super().get_context_data(**kwargs)
     context['top_content_creators'] = UserProfile.objects.top_three_content_creators()
+    # context['form'] = EmailSubscriptionForm()
     return context
 
 class BlogDetailView(TemplateResponseMixin, View):
@@ -210,3 +220,52 @@ class BlogPostUpdateView(LoginRequiredMixin, UpdateView):
 class BlogPostDeleteView(LoginRequiredMixin, DeleteView):
   model = Post
   success_url = reverse_lazy('blog:home')
+
+
+# NEWSLETTER VIEWS
+
+class EmailSubscriptionView(JSONResponseMixin, View):
+  json_dumps_kwargs = {u"indent": 2}
+
+  def post(self, request, *args, **kwargs):
+    form = EmailSubscriptionForm(request.POST or None)
+
+    if form.is_valid():
+      email_already_exists = NewsletterSubscription.objects.filter(
+        email=form.cleaned_data.get('email')).exists()
+
+      if email_already_exists:
+        return self.render_json_response({
+          'message': 'You are already subcribed to our Blog', 
+          'header': 'Already Subscribed!', 
+          'type': 'warning'
+        })
+      
+      subscribe(form.cleaned_data.get('email'))
+      form.save()
+      return self.render_json_response({
+          'message': 'you have successfully subscribed to Our Blog', 'header': 'Thank you! for Subscribing', 
+          'type': 'success'
+        })
+
+    return self.render_json_response({'error': form.errors})
+
+class EmailUnsubscriptionView(TemplateResponseMixin, View):
+  template_name = 'blog/unsubscribe_newsletter.html'
+
+  def get(self, request, *args, **kwargs):
+    form = EmailUnsubscriptionForm()
+    return self.render_to_response({'form': form})
+
+  def post(self, request, *args, **kwargs):
+    form = EmailUnsubscriptionForm(request.POST)
+    if form.is_valid():
+      subscription = get_object_or_404(NewsletterSubscription, 
+        email=form.cleaned_data.get('email'))
+      unsubscribe(subscription.email)
+      # after unsubscribing from mailchimp, delete subscription from model.
+      subscription.delete()
+      return redirect('blog:home')
+    return self.render_to_response({'form': form})
+
+
