@@ -137,3 +137,13 @@ class Comment(models.Model):
 
 	def __str__(self):
 		return f"by {self.author.username} on post '{self.post.title}'"
+
+
+class NewsletterSubscription(models.Model):
+	email = models.EmailField(null=True, blank=True)
+	date_subscribed = models.DateTimeField(auto_now_add=True)
+
+	def __str__(self):
+		return self.email
+
+
