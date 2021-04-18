@@ -1,5 +1,6 @@
 from django.db.models import Q
 from .models import Category, Post
+from .forms import  EmailSubscriptionForm
 from taggit.models import Tag
 
 def get_all_categories(request):
@@ -18,4 +19,8 @@ def get_most_commented_posts(request):
 
 def get_all_tags(request):
 	context = {'tags': Tag.objects.all()}
+	return context
+
+def email_subscription_form(request):
+	context = {'newsletter_form': EmailSubscriptionForm()}
 	return context
